@@ -6,6 +6,10 @@ import { useEffect, useState } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 import { doc, updateDoc } from "firebase/firestore";
+import { Swipeable } from "react-native-gesture-handler";
+import { deleteDoc } from "firebase/firestore"; // already imported with doc
+
+
 
 type RootStackParamList = {
   Home: undefined;
@@ -31,6 +35,26 @@ export default function HomeScreen({navigation} : HomeScreenProps) {
     });
       return unsubscribe; // Cleanup on unmount
   }, []);
+  const deleteTask = async (taskId: string) => {
+  try {
+    await deleteDoc(doc(db, "tasks", taskId));
+    console.log(`🗑 Task ${taskId} deleted`);
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    alert("Failed to delete task.");
+  }
+};
+const renderRightActions = (taskId: string) => {
+  return (
+    <TouchableOpacity
+      style={styles.deleteButton}
+      onPress={() => deleteTask(taskId)}
+    >
+      <Text style={styles.deleteButtonText}>Delete</Text>
+    </TouchableOpacity>
+  );
+};
+
   const toggleTaskStatus = async (taskId: string, currentStatus: string) => {
   const newStatus = currentStatus === "Completed" ? "Pending" : "Completed";
 
@@ -53,19 +77,22 @@ export default function HomeScreen({navigation} : HomeScreenProps) {
 
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-  <TouchableOpacity
-    style={[
-      styles.taskCard,
-      item.status === "Completed" && styles.completedCard,
-    ]}
-    onPress={() => toggleTaskStatus(item.id, item.status)}
-  >
-    <Text style={styles.taskTitle}>{item.title}</Text>
-    <Text style={styles.taskMeta}>
-      {item.status} • {item.priority}
-    </Text>
-  </TouchableOpacity>
+  <Swipeable renderRightActions={() => renderRightActions(item.id)}>
+    <TouchableOpacity
+      style={[
+        styles.taskCard,
+        item.status === "Completed" && styles.completedCard,
+      ]}
+      onPress={() => toggleTaskStatus(item.id, item.status)}
+    >
+      <Text style={styles.taskTitle}>{item.title}</Text>
+      <Text style={styles.taskMeta}>
+        {item.status} • {item.priority}
+      </Text>
+    </TouchableOpacity>
+  </Swipeable>
 )}
+
       />
 
       <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("AddTask")}>
@@ -98,4 +125,16 @@ const styles = StyleSheet.create({
     completedCard: {
     backgroundColor: "#d9ffd9", // soft green
   },
+  deleteButton: {
+  backgroundColor: "#ff4d4d",
+  justifyContent: "center",
+  alignItems: "flex-end",
+  padding: 20,
+  borderRadius: 10,
+  marginBottom: 10,
+},
+deleteButtonText: {
+  color: "white",
+  fontWeight: "bold",
+},
 });

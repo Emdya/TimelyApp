@@ -1,5 +1,14 @@
 import React from "react";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import { HomeScreenProps } from "../types";
+
+type RootStackParamList = {
+  Home: undefined;
+  AddTask: undefined;
+};
+
+type Props = NativeStackScreenProps<RootStackParamList, "Home">
 
 const sampleTasks = [
   { id: "1", title: "Finish UI design", status: "Pending", priority: "High" },
@@ -7,7 +16,7 @@ const sampleTasks = [
   { id: "3", title: "Push to GitHub", status: "Completed", priority: "Low" },
 ];
 
-export default function HomeScreen() {
+export default function HomeScreen({navigation} : HomeScreenProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>📋 Your Tasks</Text>
@@ -25,9 +34,9 @@ export default function HomeScreen() {
         )}
       />
 
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("AddTask")}>
         <Text style={styles.addButtonText}>+ Add Task</Text>
-      </TouchableOpacity>
+    </TouchableOpacity>
     </View>
   );
 }

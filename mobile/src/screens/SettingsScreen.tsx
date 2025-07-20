@@ -1,0 +1,75 @@
+
+import React, { useState } from "react";
+import { View, Text, Switch, TextInput, StyleSheet, ScrollView } from "react-native";
+
+export default function SettingsScreen() {
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [leadTimes, setLeadTimes] = useState({
+    High: { days: "0", hours: "1", minutes: "0" },
+    Medium: { days: "0", hours: "3", minutes: "0" },
+    Low: { days: "0", hours: "12", minutes: "0" },
+  });
+
+  const handleChange = (priority: string, unit: string, value: string) => {
+    setLeadTimes((prev) => ({
+      ...prev,
+      [priority]: {
+        ...prev[priority],
+        [unit]: value,
+      },
+    }));
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.heading}>🔔 Notification Settings</Text>
+
+      <View style={styles.row}>
+        <Text style={styles.label}>Enable Notifications</Text>
+        <Switch
+          value={notificationsEnabled}
+          onValueChange={setNotificationsEnabled}
+        />
+      </View>
+
+      {["High", "Medium", "Low"].map((priority) => (
+        <View key={priority} style={styles.prioritySection}>
+          <Text style={styles.priorityTitle}>{priority} Priority</Text>
+          {["days", "hours", "minutes"].map((unit) => (
+            <View key={unit} style={styles.row}>
+              <Text style={styles.label}>{unit.charAt(0).toUpperCase() + unit.slice(1)}</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={leadTimes[priority][unit]}
+                onChangeText={(text) => handleChange(priority, unit, text)}
+              />
+            </View>
+          ))}
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { padding: 20 },
+  heading: { fontSize: 22, fontWeight: "bold", marginBottom: 20 },
+  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  label: { fontSize: 16 },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    width: 60,
+    padding: 6,
+    borderRadius: 5,
+    textAlign: "center",
+  },
+  prioritySection: {
+    marginTop: 20,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  priorityTitle: { fontSize: 18, fontWeight: "600", marginBottom: 10 },
+});

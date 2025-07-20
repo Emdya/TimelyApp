@@ -7,6 +7,8 @@ import { Button, View, StyleSheet } from "react-native";
 import HomeScreen from "./src/screens/HomeScreen";
 import AddTaskScreen from "./src/screens/AddTaskScreen";
 import { RootStackParamList } from "./src/types";
+import SettingsScreen from "./src/screens/SettingsScreen";
+
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -56,8 +58,9 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="NotificationTest">
+        <Stack.Navigator initialRouteName="Settings">
           <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="AddTask" component={AddTaskScreen} />
           <Stack.Screen name="NotificationTest" component={NotificationTestScreen} />
         </Stack.Navigator>

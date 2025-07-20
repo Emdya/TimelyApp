@@ -1,38 +1,48 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 import { AddTaskScreenProps } from "../types";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../firebase/firebase";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
-
-export default function AddTaskScreen({ navigation } : AddTaskScreenProps) {
+export default function AddTaskScreen({ navigation }: AddTaskScreenProps) {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("");
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
 
- const handleAddTask = async () => {
-  if (!title.trim()) {
-    alert("Please enter a task title");
-    return;
-  }
+  const handleAddTask = async () => {
+    if (!title.trim()) {
+      alert("Please enter a task title");
+      return;
+    }
 
-  try {
-    await addDoc(collection(db, "tasks"), {
-      title: title.trim(),
-      priority: priority || "Medium",
-      status: "Pending",
-      createdAt: new Date(),
-    });
+    try {
+      await addDoc(collection(db, "tasks"), {
+        title: title.trim(),
+        priority: priority || "Medium",
+        status: "Pending",
+        createdAt: new Date(),
+        dueDate: dueDate?.toISOString() || null,
+      });
 
-    alert("✅ Task added!");
-    navigation.goBack();
-  } catch (error) {
-    console.error("Error adding task:", error);
-    alert("❌ Failed to add task");
-  }
-};
+      alert("✅ Task added!");
+      navigation.goBack();
+    } catch (error) {
+      console.error("Error adding task:", error);
+      alert("❌ Failed to add task");
+    }
+  };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>➕ Add New Task</Text>
 
       <TextInput
@@ -49,21 +59,46 @@ export default function AddTaskScreen({ navigation } : AddTaskScreenProps) {
         onChangeText={setPriority}
       />
 
+      <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.datePicker}>
+        <Text>
+          {dueDate ? dueDate.toLocaleString() : "Pick Due Date & Time"}
+        </Text>
+      </TouchableOpacity>
+
+      {showPicker && (
+        <DateTimePicker
+          value={dueDate || new Date()}
+          mode="datetime"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowPicker(false);
+            if (selectedDate) setDueDate(selectedDate);
+          }}
+        />
+      )}
+
       <TouchableOpacity style={styles.button} onPress={handleAddTask}>
         <Text style={styles.buttonText}>Add Task</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  container: { padding: 20 },
   heading: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
+    marginBottom: 15,
+  },
+  datePicker: {
+    padding: 12,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 8,
     marginBottom: 15,
   },
   button: {

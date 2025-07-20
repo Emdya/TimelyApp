@@ -109,6 +109,9 @@ const renderRightActions = (taskId: string) => {
               <Text style={styles.taskMeta}>
                 {item.status} • {item.priority}
               </Text>
+              <Text style={styles.dueText}>
+      Due: {item.dueDate ? new Date(item.dueDate).toLocaleString() : "N/A"}
+    </Text>
             </TouchableOpacity>
           </Swipeable>
         )}
@@ -155,6 +158,11 @@ const styles = StyleSheet.create({
   padding: 20,
   borderRadius: 10,
   marginBottom: 10,
+},
+dueText: {
+  fontSize: 14,
+  color: "#999",
+  marginTop: 4,
 },
 deleteButtonText: {
   color: "white",

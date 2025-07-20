@@ -23,6 +23,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Home">
 
 export default function HomeScreen({navigation} : HomeScreenProps) {
     const [tasks, setTasks] = useState<any[]>([]);
+    const [priorityFilter, setPriorityFilter] = useState("All");
 
     useEffect(() => {
     const q = query(collection(db, "tasks"), orderBy("createdAt", "desc"));
@@ -68,38 +69,60 @@ const renderRightActions = (taskId: string) => {
   }
 };
 
+  const filteredTasks =
+  priorityFilter === "All"
+    ? tasks
+    : tasks.filter((task) => task.priority === priorityFilter);
   return (
+  <>
+    <View style={styles.filterContainer}>
+      {["All", "High", "Medium", "Low"].map((level) => (
+        <TouchableOpacity
+          key={level}
+          onPress={() => setPriorityFilter(level)}
+          style={[
+            styles.filterButton,
+            priorityFilter === level && styles.filterButtonActive,
+          ]}
+        >
+          <Text style={styles.filterButtonText}>{level}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+
     <View style={styles.container}>
       <Text style={styles.heading}>📋 Your Tasks</Text>
 
       <FlatList
-        data={tasks}
-
+        data={filteredTasks}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-  <Swipeable renderRightActions={() => renderRightActions(item.id)}>
-    <TouchableOpacity
-      style={[
-        styles.taskCard,
-        item.status === "Completed" && styles.completedCard,
-      ]}
-      onPress={() => toggleTaskStatus(item.id, item.status)}
-    >
-      <Text style={styles.taskTitle}>{item.title}</Text>
-      <Text style={styles.taskMeta}>
-        {item.status} • {item.priority}
-      </Text>
-    </TouchableOpacity>
-  </Swipeable>
-)}
-
+          <Swipeable renderRightActions={() => renderRightActions(item.id)}>
+            <TouchableOpacity
+              style={[
+                styles.taskCard,
+                item.status === "Completed" && styles.completedCard,
+              ]}
+              onPress={() => toggleTaskStatus(item.id, item.status)}
+            >
+              <Text style={styles.taskTitle}>{item.title}</Text>
+              <Text style={styles.taskMeta}>
+                {item.status} • {item.priority}
+              </Text>
+            </TouchableOpacity>
+          </Swipeable>
+        )}
       />
 
-      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("AddTask")}>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => navigation.navigate("AddTask")}
+      >
         <Text style={styles.addButtonText}>+ Add Task</Text>
-    </TouchableOpacity>
+      </TouchableOpacity>
     </View>
-  );
+  </>
+);
 }
 
 const styles = StyleSheet.create({
@@ -136,5 +159,23 @@ const styles = StyleSheet.create({
 deleteButtonText: {
   color: "white",
   fontWeight: "bold",
+},
+filterContainer: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  marginBottom: 15,
+},
+filterButton: {
+  paddingVertical: 6,
+  paddingHorizontal: 12,
+  borderRadius: 20,
+  backgroundColor: "#eee",
+},
+filterButtonActive: {
+  backgroundColor: "#4CAF50",
+},
+filterButtonText: {
+  color: "#333",
+  fontWeight: "600",
 },
 });

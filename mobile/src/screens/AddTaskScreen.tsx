@@ -1,16 +1,35 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from "react-native";
 import { AddTaskScreenProps } from "../types";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "../firebase/firebase";
+
 
 export default function AddTaskScreen({ navigation } : AddTaskScreenProps) {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("");
 
-  const handleAddTask = () => {
-    // 🔜 Replace this with Firestore write logic later
-    console.log("Task added:", { title, priority });
-    navigation.goBack(); // navigate back to Home after adding
-  };
+ const handleAddTask = async () => {
+  if (!title.trim()) {
+    alert("Please enter a task title");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "tasks"), {
+      title: title.trim(),
+      priority: priority || "Medium",
+      status: "Pending",
+      createdAt: new Date(),
+    });
+
+    alert("✅ Task added!");
+    navigation.goBack();
+  } catch (error) {
+    console.error("Error adding task:", error);
+    alert("❌ Failed to add task");
+  }
+};
 
   return (
     <View style={styles.container}>

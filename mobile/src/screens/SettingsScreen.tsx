@@ -1,6 +1,7 @@
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Switch, TextInput, StyleSheet, ScrollView } from "react-native";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "../firebase/firebase";
 
 export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -10,14 +11,37 @@ export default function SettingsScreen() {
     Low: { days: "0", hours: "12", minutes: "0" },
   });
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const ref = doc(db, "settings", "default"); // in future: use user ID
+      const snapshot = await getDoc(ref);
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setNotificationsEnabled(data.notificationsEnabled);
+        setLeadTimes(data.leadTimes);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const saveSettings = async () => {
+    const ref = doc(db, "settings", "default");
+    await setDoc(ref, {
+      notificationsEnabled,
+      leadTimes,
+    });
+  };
+
   const handleChange = (priority: string, unit: string, value: string) => {
-    setLeadTimes((prev) => ({
-      ...prev,
+    const updated = {
+      ...leadTimes,
       [priority]: {
-        ...prev[priority],
+        ...leadTimes[priority],
         [unit]: value,
       },
-    }));
+    };
+    setLeadTimes(updated);
+    saveSettings(); // 🔄 Save to Firestore
   };
 
   return (
@@ -28,7 +52,10 @@ export default function SettingsScreen() {
         <Text style={styles.label}>Enable Notifications</Text>
         <Switch
           value={notificationsEnabled}
-          onValueChange={setNotificationsEnabled}
+          onValueChange={(value) => {
+            setNotificationsEnabled(value);
+            saveSettings();
+          }}
         />
       </View>
 
@@ -37,7 +64,9 @@ export default function SettingsScreen() {
           <Text style={styles.priorityTitle}>{priority} Priority</Text>
           {["days", "hours", "minutes"].map((unit) => (
             <View key={unit} style={styles.row}>
-              <Text style={styles.label}>{unit.charAt(0).toUpperCase() + unit.slice(1)}</Text>
+              <Text style={styles.label}>
+                {unit.charAt(0).toUpperCase() + unit.slice(1)}
+              </Text>
               <TextInput
                 style={styles.input}
                 keyboardType="numeric"
@@ -55,7 +84,12 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: { padding: 20 },
   heading: { fontSize: 22, fontWeight: "bold", marginBottom: 20 },
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
   label: { fontSize: 16 },
   input: {
     borderWidth: 1,

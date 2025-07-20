@@ -5,6 +5,7 @@ import { HomeScreenProps } from "../types";
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../firebase/firebase";
+import { doc, updateDoc } from "firebase/firestore";
 
 type RootStackParamList = {
   Home: undefined;
@@ -30,6 +31,18 @@ export default function HomeScreen({navigation} : HomeScreenProps) {
     });
       return unsubscribe; // Cleanup on unmount
   }, []);
+  const toggleTaskStatus = async (taskId: string, currentStatus: string) => {
+  const newStatus = currentStatus === "Completed" ? "Pending" : "Completed";
+
+  try {
+    const taskRef = doc(db, "tasks", taskId);
+    await updateDoc(taskRef, { status: newStatus });
+    console.log(`Task ${taskId} marked as ${newStatus}`);
+  } catch (error) {
+    console.error("Error updating task status:", error);
+    alert("Failed to update task.");
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -40,13 +53,19 @@ export default function HomeScreen({navigation} : HomeScreenProps) {
 
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.taskCard}>
-            <Text style={styles.taskTitle}>{item.title}</Text>
-            <Text style={styles.taskMeta}>
-              {item.status} • {item.priority}
-            </Text>
-          </View>
-        )}
+  <TouchableOpacity
+    style={[
+      styles.taskCard,
+      item.status === "Completed" && styles.completedCard,
+    ]}
+    onPress={() => toggleTaskStatus(item.id, item.status)}
+  >
+    <Text style={styles.taskTitle}>{item.title}</Text>
+    <Text style={styles.taskMeta}>
+      {item.status} • {item.priority}
+    </Text>
+  </TouchableOpacity>
+)}
       />
 
       <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("AddTask")}>
@@ -57,6 +76,7 @@ export default function HomeScreen({navigation} : HomeScreenProps) {
 }
 
 const styles = StyleSheet.create({
+    
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
   heading: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
   taskCard: {
@@ -75,4 +95,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   addButtonText: { color: "white", fontSize: 16, fontWeight: "600" },
+    completedCard: {
+    backgroundColor: "#d9ffd9", // soft green
+  },
 });

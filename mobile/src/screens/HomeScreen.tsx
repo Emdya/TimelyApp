@@ -2,6 +2,9 @@ import React from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
 import { HomeScreenProps } from "../types";
+import { useEffect, useState } from "react";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { db } from "../firebase/firebase";
 
 type RootStackParamList = {
   Home: undefined;
@@ -10,19 +13,31 @@ type RootStackParamList = {
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">
 
-const sampleTasks = [
-  { id: "1", title: "Finish UI design", status: "Pending", priority: "High" },
-  { id: "2", title: "Write Firestore logic", status: "In Progress", priority: "Medium" },
-  { id: "3", title: "Push to GitHub", status: "Completed", priority: "Low" },
-];
+
+
 
 export default function HomeScreen({navigation} : HomeScreenProps) {
+    const [tasks, setTasks] = useState<any[]>([]);
+
+    useEffect(() => {
+    const q = query(collection(db, "tasks"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedTasks = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTasks(fetchedTasks);
+    });
+      return unsubscribe; // Cleanup on unmount
+  }, []);
+
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>📋 Your Tasks</Text>
 
       <FlatList
-        data={sampleTasks}
+        data={tasks}
+
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.taskCard}>

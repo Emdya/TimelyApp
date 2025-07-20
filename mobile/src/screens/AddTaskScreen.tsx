@@ -10,6 +10,8 @@ import {
 import { AddTaskScreenProps } from "../types";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../firebase/firebase";
+import * as Notifications from "expo-notifications";
+import { doc, getDoc } from "firebase/firestore";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function AddTaskScreen({ navigation }: AddTaskScreenProps) {
@@ -32,6 +34,31 @@ export default function AddTaskScreen({ navigation }: AddTaskScreenProps) {
         createdAt: new Date(),
         dueDate: dueDate?.toISOString() || null,
       });
+      // Load settings from Firestore
+const settingsSnap = await getDoc(doc(db, "settings", "default"));
+if (settingsSnap.exists()) {
+  const settings = settingsSnap.data();
+
+  if (settings.notificationsEnabled && dueDate) {
+    const lead = settings.leadTimes?.[priority || "Medium"];
+    if (lead) {
+      const leadMs =
+        (+lead.days || 0) * 86400000 +
+        (+lead.hours || 0) * 3600000 +
+        (+lead.minutes || 0) * 60000;
+
+      const triggerTime = new Date(new Date(dueDate).getTime() - leadMs);
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: `⏰ ${title.trim()} is coming up!`,
+          body: `Due at ${new Date(dueDate).toLocaleString()}`,
+        },
+        trigger: triggerTime,
+      });
+    }
+  }
+}
 
       alert("✅ Task added!");
       navigation.goBack();

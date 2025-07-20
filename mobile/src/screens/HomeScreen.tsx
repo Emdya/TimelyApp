@@ -91,7 +91,16 @@ const renderRightActions = (taskId: string) => {
     </View>
 
     <View style={styles.container}>
-      <Text style={styles.heading}>📋 Your Tasks</Text>
+      
+
+  <TouchableOpacity
+    style={styles.settingsButton}
+    onPress={() => navigation.navigate("Settings")}
+  >
+    <Text style={styles.settingsButtonText}>⚙️ Settings</Text>
+  </TouchableOpacity>
+
+  <Text style={styles.heading}>📋 Your Tasks</Text>
 
       <FlatList
         data={filteredTasks}
@@ -178,6 +187,17 @@ filterButton: {
   paddingHorizontal: 12,
   borderRadius: 20,
   backgroundColor: "#eee",
+},
+settingsButton: {
+  alignSelf: "flex-end",
+  marginBottom: 10,
+  padding: 8,
+  borderRadius: 8,
+  backgroundColor: "#eee",
+},
+settingsButtonText: {
+  fontSize: 14,
+  fontWeight: "600",
 },
 filterButtonActive: {
   backgroundColor: "#4CAF50",

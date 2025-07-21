@@ -1,29 +1,28 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as Notifications from "expo-notifications";
-import { Button, View, StyleSheet } from "react-native";
+import { Button, View, StyleSheet, Text } from "react-native";
+import { RootStackParamList } from "./src/types";
 import HomeScreen from "./src/screens/HomeScreen";
 import AddTaskScreen from "./src/screens/AddTaskScreen";
-import { RootStackParamList } from "./src/types";
 import SettingsScreen from "./src/screens/SettingsScreen";
-
+import AuthScreen from "./src/screens/AuthScreen";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "./src/firebase/firebase";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowBanner: true,  // ✅ shows banner (iOS-style)
-    shouldShowList: true,    // ✅ adds to Notification Center
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
 });
 
-
-
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// Optional: create a temporary test screen
 function NotificationTestScreen() {
   const triggerNotification = async () => {
     await Notifications.scheduleNotificationAsync({
@@ -43,27 +42,49 @@ function NotificationTestScreen() {
 }
 
 export default function App() {
-  useEffect(() => {
-  const getPermissions = async () => {
-    const { status } = await Notifications.requestPermissionsAsync();
-    console.log("🔐 Notification permission status:", status);
-    if (status !== "granted") {
-      alert("Enable notifications in system settings.");
-    }
-  };
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  getPermissions();
-}, []);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const getPermissions = async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      console.log("🔐 Notification permission status:", status);
+      if (status !== "granted") {
+        alert("Enable notifications in system settings.");
+      }
+    };
+    getPermissions();
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Home">
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
-          <Stack.Screen name="AddTask" component={AddTaskScreen} />
-          <Stack.Screen name="NotificationTest" component={NotificationTestScreen} />
-        </Stack.Navigator>
+        {loading ? (
+          <View style={styles.container}>
+            <Text>Loading...</Text>
+          </View>
+        ) : (
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {!user ? (
+              <Stack.Screen name="Auth" component={AuthScreen} />
+            ) : (
+              <>
+                <Stack.Screen name="Home" component={HomeScreen} />
+                <Stack.Screen name="AddTask" component={AddTaskScreen} />
+                <Stack.Screen name="Settings" component={SettingsScreen} />
+                <Stack.Screen name="NotificationTest" component={NotificationTestScreen} />
+              </>
+            )}
+          </Stack.Navigator>
+        )}
       </NavigationContainer>
     </GestureHandlerRootView>
   );

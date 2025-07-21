@@ -18,6 +18,7 @@ export default function AddTaskScreen({ navigation, route }: AddTaskScreenProps)
   const { task } = route.params || {};
   const [title, setTitle] = useState( task?.title || "");
   const [priority, setPriority] = useState(task?.priority || "");
+  const [sortOption, setSortOption] = useState<"dueDate" | "priority">("dueDate");
   const [dueDate, setDueDate] = useState<Date | null>(() => {
   if (!task?.dueDate) return null;
 

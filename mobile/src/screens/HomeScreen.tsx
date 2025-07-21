@@ -24,6 +24,8 @@ type Props = NativeStackScreenProps<RootStackParamList, "Home">
 export default function HomeScreen({navigation} : HomeScreenProps) {
     const [tasks, setTasks] = useState<any[]>([]);
     const [priorityFilter, setPriorityFilter] = useState("All");
+    const [sortOption, setSortOption] = useState<"dueDate" | "priority">("dueDate");
+
 
     useEffect(() => {
     const q = query(collection(db, "tasks"), orderBy("createdAt", "desc"));
@@ -73,6 +75,17 @@ const renderRightActions = (taskId: string) => {
   priorityFilter === "All"
     ? tasks
     : tasks.filter((task) => task.priority === priorityFilter);
+    const sortedTasks = [...filteredTasks].sort((a, b) => {
+  if (sortOption === "dueDate") {
+    const aDate = new Date(a.dueDate);
+    const bDate = new Date(b.dueDate);
+    return aDate.getTime() - bDate.getTime(); // Soonest first
+  } else {
+    const priorityOrder = { High: 1, Medium: 2, Low: 3 };
+    return priorityOrder[a.priority] - priorityOrder[b.priority];
+  }
+});
+
   return (
   <>
     <View style={styles.filterContainer}>
@@ -89,9 +102,32 @@ const renderRightActions = (taskId: string) => {
         </TouchableOpacity>
       ))}
     </View>
-
+    
     <View style={styles.container}>
-      
+        <View style={styles.sortContainer}>
+  <Text style={styles.sortLabel}>Sort by:</Text>
+
+  <TouchableOpacity
+    onPress={() => setSortOption("dueDate")}
+    style={[
+      styles.sortButton,
+      sortOption === "dueDate" && styles.sortButtonActive,
+    ]}
+  >
+    <Text style={styles.sortButtonText}>Due Date</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    onPress={() => setSortOption("priority")}
+    style={[
+      styles.sortButton,
+      sortOption === "priority" && styles.sortButtonActive,
+    ]}
+  >
+    <Text style={styles.sortButtonText}>Priority</Text>
+  </TouchableOpacity>
+</View>
+
 
   <TouchableOpacity
     style={styles.settingsButton}
@@ -103,7 +139,7 @@ const renderRightActions = (taskId: string) => {
   <Text style={styles.heading}>📋 Your Tasks</Text>
 
       <FlatList
-        data={filteredTasks}
+        data={sortedTasks}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <Swipeable renderRightActions={() => renderRightActions(item.id)}>
@@ -113,6 +149,7 @@ const renderRightActions = (taskId: string) => {
                 item.status === "Completed" && styles.completedCard,
               ]}
               onPress={() => toggleTaskStatus(item.id, item.status)}
+              onLongPress={()=> navigation.navigate("AddTask",{task: item})}
             >
               <Text style={styles.taskTitle}>{item.title}</Text>
               <Text style={styles.taskMeta}>
@@ -203,6 +240,29 @@ filterButtonActive: {
   backgroundColor: "#4CAF50",
 },
 filterButtonText: {
+  color: "#333",
+  fontWeight: "600",
+},
+sortContainer: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 10,
+},
+sortLabel: {
+  fontSize: 16,
+  fontWeight: "600",
+},
+sortButton: {
+  paddingVertical: 6,
+  paddingHorizontal: 12,
+  borderRadius: 20,
+  backgroundColor: "#eee",
+},
+sortButtonActive: {
+  backgroundColor: "#4CAF50",
+},
+sortButtonText: {
   color: "#333",
   fontWeight: "600",
 },

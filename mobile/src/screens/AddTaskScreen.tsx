@@ -12,6 +12,7 @@ import { addDoc, collection, updateDoc } from "firebase/firestore"; // Make sure
 import { db } from "../firebase/firebase";
 import * as Notifications from "expo-notifications";
 import { doc, getDoc } from "firebase/firestore";
+import { auth } from "../firebase/firebase"; // if not already imported
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 export default function AddTaskScreen({ navigation, route }: AddTaskScreenProps) {
@@ -57,6 +58,7 @@ export default function AddTaskScreen({ navigation, route }: AddTaskScreenProps)
       dueDate: dueDate instanceof Date && !isNaN(dueDate.getTime())
         ? dueDate.toISOString()
         : null,
+        userId: auth.currentUser?.uid, // ✅ attach the current user's ID
     };
 
     let taskId = task?.id;
@@ -64,6 +66,7 @@ export default function AddTaskScreen({ navigation, route }: AddTaskScreenProps)
     if (taskId) {
       await updateDoc(doc(db, "tasks", taskId), payload);
     } else {
+    console.log("🚀 Payload being saved:", payload);
       const ref = await addDoc(collection(db, "tasks"), payload);
       taskId = ref.id;
     }
@@ -85,13 +88,22 @@ export default function AddTaskScreen({ navigation, route }: AddTaskScreenProps)
           if (!isNaN(dueTime.getTime())) {
             const triggerTime = new Date(dueTime.getTime() - leadMs);
 
-            await Notifications.scheduleNotificationAsync({
-              content: {
-                title: `⏰ ${title.trim()} is coming up!`,
-                body: `Due at ${dueDate.toLocaleString()}`,
-              },
-              trigger: triggerTime,
-            });
+            if (isNaN(triggerTime.getTime()) || triggerTime <= new Date()) {
+  console.warn("⏰ Skipping notification — trigger time is invalid or in the past");
+} else {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: `⏰ ${title.trim()} is coming up!`,
+      body: `Due at ${dueDate.toLocaleString()}`,
+    },
+    trigger: {
+      type: "date",
+      date: triggerTime,
+    },
+  });
+}
+
+
           }
         }
       }

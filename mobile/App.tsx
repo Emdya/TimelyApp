@@ -12,6 +12,7 @@ import AuthScreen from "./src/screens/AuthScreen";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "./src/firebase/firebase";
 
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,

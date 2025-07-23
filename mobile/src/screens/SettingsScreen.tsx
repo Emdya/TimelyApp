@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Switch, TextInput, StyleSheet, ScrollView } from "react-native";
+import {
+  View, Text, Switch, TextInput, StyleSheet, ScrollView, TouchableOpacity
+} from "react-native";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../types";
+import { SafeAreaView } from "react-native";
 
-export default function SettingsScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, "Settings">;
+
+
+
+export default function SettingsScreen({ navigation }: Props){
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [leadTimes, setLeadTimes] = useState({
     High: { days: "0", hours: "1", minutes: "0" },
@@ -43,11 +52,19 @@ export default function SettingsScreen() {
     setLeadTimes(updated);
     saveSettings(); // 🔄 Save to Firestore
   };
-
   return (
+    <SafeAreaView style={{ flex: 1 }}>
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>🔔 Notification Settings</Text>
 
+       <TouchableOpacity
+  onPress={() => navigation.goBack()}
+  style={{ padding: 12, marginBottom: 10 }}
+>
+  <Text style={{ fontSize: 18 }}>← Back</Text>
+</TouchableOpacity>
+
+     
       <View style={styles.row}>
         <Text style={styles.label}>Enable Notifications</Text>
         <Switch
@@ -78,6 +95,7 @@ export default function SettingsScreen() {
         </View>
       ))}
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -107,3 +125,5 @@ const styles = StyleSheet.create({
   },
   priorityTitle: { fontSize: 18, fontWeight: "600", marginBottom: 10 },
 });
+
+     

@@ -14,6 +14,7 @@ import * as Notifications from "expo-notifications";
 import { doc, getDoc } from "firebase/firestore";
 import { auth } from "../firebase/firebase"; // if not already imported
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { SafeAreaView } from "react-native";
 
 export default function AddTaskScreen({ navigation, route }: AddTaskScreenProps) {
   const { task } = route.params || {};
@@ -122,6 +123,7 @@ export default function AddTaskScreen({ navigation, route }: AddTaskScreenProps)
 
     
   return (
+    <SafeAreaView style={{ flex: 1 }}>
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>{task ? " Edit Task" : "➕ Add New Task"}</Text>
 
@@ -161,11 +163,15 @@ export default function AddTaskScreen({ navigation, route }: AddTaskScreenProps)
   <Text style={styles.buttonText}>{task ? "Update Task" : "Add Task"}</Text>
 </TouchableOpacity>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20 },
+  container: { padding: 20, 
+    paddingTop: 40
+  },
+
   heading: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
   input: {
     borderWidth: 1,

@@ -1,7 +1,7 @@
 import React from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
-import { HomeScreenProps } from "../types";
+import { CalendarScreenProps } from "../types";
 import { useEffect, useState } from "react";
 import { db } from "../firebase/firebase";
 import { auth } from "../firebase/firebase"; 
@@ -28,7 +28,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Home">
 
 
 
-export default function HomeScreen({navigation} : HomeScreenProps) {
+export default function CalendarScreen({navigation} : CalendarScreenProps) {
     const [tasks, setTasks] = useState<any[]>([]);
     const [priorityFilter, setPriorityFilter] = useState("All");
     const [sortOption, setSortOption] = useState<"dueDate" | "priority">("dueDate");

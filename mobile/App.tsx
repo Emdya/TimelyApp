@@ -5,12 +5,12 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as Notifications from "expo-notifications";
 import { Button, View, StyleSheet, Text } from "react-native";
 import { RootStackParamList } from "./src/types";
-import HomeScreen from "./src/screens/HomeScreen";
 import AddTaskScreen from "./src/screens/AddTaskScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
 import AuthScreen from "./src/screens/AuthScreen";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "./src/firebase/firebase";
+import BottomTabs from "./src/navigation/BottomTabs";
 
 
 Notifications.setNotificationHandler({
@@ -78,7 +78,7 @@ export default function App() {
               <Stack.Screen name="Auth" component={AuthScreen} />
             ) : (
               <>
-                <Stack.Screen name="Home" component={HomeScreen} />
+                <Stack.Screen name="Main" component={BottomTabs} />
                 <Stack.Screen name="AddTask" component={AddTaskScreen} />
                 <Stack.Screen name="Settings" component={SettingsScreen} />
                 <Stack.Screen name="NotificationTest" component={NotificationTestScreen} />

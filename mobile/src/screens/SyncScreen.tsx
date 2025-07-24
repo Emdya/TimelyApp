@@ -9,6 +9,9 @@ import {
   TextInput,
 } from "react-native";
 import Header from "../components/Header";
+import { sendCalendarInvite } from "../services/calendarService";
+import { auth } from "../firebase/firebase"; 
+
 
 export default function SyncScreen() {
   const [activeTab, setActiveTab] = useState<"shared" | "availability">("shared");
@@ -19,7 +22,7 @@ export default function SyncScreen() {
     if (activeTab === "shared") {
       return (
         <View style={styles.tabContent}>
-          <Text style={styles.sectionTitle}>📅 Shared Calendars</Text>
+          <Text style={styles.sectionTitle}> Shared Calendars</Text>
           {/* Placeholder for shared calendar cards */}
           <Text>Coming soon: list of synced calendars</Text>
         </View>
@@ -27,7 +30,7 @@ export default function SyncScreen() {
     } else {
       return (
         <View style={styles.tabContent}>
-          <Text style={styles.sectionTitle}>⏰ Group Availability</Text>
+          <Text style={styles.sectionTitle}> Group Availability</Text>
           {/* Placeholder for availability results */}
           <Text>Coming soon: best meeting times for all members</Text>
         </View>
@@ -35,11 +38,37 @@ export default function SyncScreen() {
     }
   };
 
-  const handleInvite = () => {
-    console.log("Invite sent to:", inviteEmail);
+  const handleInvite = async () => {
+  if (!inviteEmail.trim()) {
+    alert("Please enter an email address.");
+    return;
+  }
+
+  try {
+    // Replace with real calendar ID and user ID if available
+    const calendarId = "shared_calendar_abc123"; // replace dynamically if needed
+    const invitedBy = auth.currentUser?.uid!; // optionally use auth.currentUser?.uid
+
+    const result = await sendCalendarInvite({
+      calendarId,
+      invitedEmail: inviteEmail,
+      invitedBy,
+    });
+
+    if (result.success) {
+      alert(" Invite sent successfully!");
+    } else {
+      throw new Error(result.error || "Unknown error");
+    }
+  } catch (error) {
+    console.error(" Failed to send invite:", error);
+    alert(" Failed to send invite. Try again.");
+  } finally {
     setShowInviteModal(false);
     setInviteEmail("");
-  };
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>
